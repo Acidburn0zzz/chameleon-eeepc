@@ -57,7 +57,6 @@ void patch_kernel_internal(void *kernelData, u_int32_t uncompressed_size)
 	verbose("\tKernelBooter_kexts state: %s!\n", KernelBooter_kexts  ? " enabled" : "disabled");
 	verbose("\tKernelPm           state: %s!\n", KernelPm            ? " enabled" : "disabled");
 	verbose("\tKernelLapicError   state: %s!\n", KernelLapicError    ? " enabled" : "disabled");
-	verbose("\tKernelLapicVersion state: %s!\n", KernelLapicVersion  ? " enabled" : "disabled");
 	verbose("\tKernelHaswell      state: %s!\n", KernelHaswell       ? " enabled" : "disabled");
 	verbose("\tKernelcpuFamily    state: %s!\n", KernelcpuFamily     ? " enabled" : "disabled");
 	verbose("\tKernelSSE3         state: %s!\n", KernelSSE3          ? " enabled" : "disabled");
@@ -116,12 +115,6 @@ void patch_kernel_64(void *kernelData, u_int32_t uncompressed_size) // KernelPat
 	if (KernelLapicError && patch_lapic_init_64(kernelData))
 	{
 		verbose("\tLapic Error call removed.\n");
-	}
-
-	// Lapic Version
-	if (KernelLapicVersion && patch_lapic_version_init_64(kernelData))
-	{
-		verbose("\tLapic Version call removed.\n");
 	}
 
 	// Power Managment
@@ -447,12 +440,6 @@ void patch_kernel_32(void *kernelData, u_int32_t uncompressed_size) // KernelPat
 		verbose("\tLapic Error call removed.\n");
 	}
 
-	// Lapic Version
-	if (KernelLapicVersion && patch_lapic_version_init_32(kernelData))
-	{
-		verbose("\tLapic Version call removed.\n");
-	}
-
 	if (KernelcpuFamily)
 	{
 		verbose("\t- Looking for _cpuid_set_info _panic ...\n");
@@ -667,148 +654,6 @@ bool patch_pm_init(void *kernelData) // KernelPatchPm
 }
 
 // ===================================
-// Bronya: Lapic Panic Version 64
-bool patch_lapic_version_init_64(void *kernelData)  // KernelLapicVersionPatch_64
-{
-	UInt8       *bytes = (UInt8 *)kernelData;
-	UInt32      patchLocation = 0;
-	UInt32      i;
-
-	verbose("\t- Looking for Lapic Version panic call Start\n");
-
-	for (i = 0; i < 0x1000000; i++)
-	{
-		// Bronya: Snow Leopard 10.6 Lapic Version
-		if (bytes[i + 0]     == 0x48
-			&& bytes[i + 1]  == 0x0f
-			&& bytes[i + 2]  == 0x44
-			&& bytes[i + 3]  == 0xc2
-			&& bytes[i + 57] == 0x31
-			&& bytes[i + 58] == 0xc0)
-		{
-			patchLocation = i + 59;
-			verbose("\tFound Snow Leopard Lapic panic at 0x%08X\n", (unsigned int)patchLocation);
-			break;
-		}
-		// Bronya: Lion 10.7 Lapic Version
-		else if (bytes[i + 0] == 0x48
-			&& bytes[i + 1]   == 0x0f
-			&& bytes[i + 2]   == 0x44
-			&& bytes[i + 3]   == 0xc8
-			&& bytes[i + 61]  == 0x30
-			&& bytes[i + 62]  == 0xc0
-			&& bytes[i + 63]  == 0xe8)
-		{
-			patchLocation = i + 63;
-			verbose("\tFound Lion, Lapic Version panic at 0x%08X\n", (unsigned int)patchLocation);
-			break;
-		}
-		// Bronya: Mountain Lion 10.8 Lapic Version
-		else if (bytes[i + 0] == 0x45
-			&& bytes[i + 1]   == 0x85
-			&& bytes[i + 2]   == 0xf6
-			&& bytes[i + 3]   == 0x48
-			&& bytes[i + 4]   == 0x0f
-			&& bytes[i + 5]   == 0x45
-			&& bytes[i + 6]   == 0xc1
-			&& bytes[i + 68]  == 0xe8
-			&& bytes[i + 69]  == 0x3d
-			&& bytes[i + 70]  == 0x15
-			&& bytes[i + 71]  == 0xf6
-			&& bytes[i + 72]  == 0xff)
-		{
-			patchLocation = i + 68;
-			verbose("\tFound Mountain Lion, Lapic Version panic at 0x%08X\n", (unsigned int)patchLocation);
-			break;
-		}
-		// Bronya: Mavericks 10.9 Lapic Version
-		else if (bytes[i + 0] == 0xff
-			&& bytes[i + 1]   == 0x50
-			&& bytes[i + 2]   == 0x08
-			&& bytes[i + 3]   == 0x89
-			&& bytes[i + 4]   == 0xc3
-			&& bytes[i + 90]  == 0xe8
-			&& bytes[i + 91]  == 0x02
-			&& bytes[i + 92]  == 0x17
-			&& bytes[i + 93]  == 0xf4
-			&& bytes[i + 94]  == 0xff)
-		{
-			patchLocation = i + 90;
-			verbose("\tFound Mavericks Lapic Version panic at 0x%08X\n", (unsigned int)patchLocation);
-			break;
-		}
-		// Bronya: Yosemite 10.10 lapic version
-		else if (bytes[i + 0] == 0xff
-			&& bytes[i + 1]   == 0x50
-			&& bytes[i + 2]   == 0x08
-			&& bytes[i + 38]  == 0x31
-			&& bytes[i + 39]  == 0xdb
-			&& bytes[i + 40]  == 0x31
-			&& bytes[i + 41]  == 0xc0)
-		{
-			patchLocation = i + 42;
-			verbose("\tFound Yosemite Lapic Version panic at 0x%08X\n", (unsigned int)patchLocation);
-			break;
-		}
-		// Bronya: El Capitan 10.11 Lapic Version/10.12/10.13
-		else if (bytes[i + 0] == 0xff
-			&& bytes[i + 1]   == 0x50
-			&& bytes[i + 2]   == 0x08
-			&& bytes[i + 38]  == 0x31
-			&& bytes[i + 39]  == 0xc0)
-		{
-			patchLocation = i + 40;	
-
-			if (kernelOSVer >= MacOSVer2Int("10.14") && kernelOSVer < MacOSVer2Int("10.15"))
-			{
-				verbose("\tFound Mojave Lapic Version panic at 0x%08X\n", (unsigned int)patchLocation);
-			}
-			else if (kernelOSVer >= MacOSVer2Int("10.13") && kernelOSVer < MacOSVer2Int("10.14"))
-			{
-				verbose("\tFound High Sierra Lapic Version panic at 0x%08X\n", (unsigned int)patchLocation);
-			}
-			else if (kernelOSVer >= MacOSVer2Int("10.12") && kernelOSVer < MacOSVer2Int("10.13"))
-			{
-				verbose("\tFound Sierra Lapic Version panic at 0x%08X\n", (unsigned int)patchLocation);
-			}
-			else
-			{
-				verbose("\tFound El Capitan Lapic Version panic at 0x%08X\n", (unsigned int)patchLocation);
-			}
-			
-			break;
-		}
-	}
-
-	if (!patchLocation)
-	{
-		verbose("\tCan't find Lapic Version panic, kernel patch aborted.\n");
-		return false;
-	}
-
-	// Already patched?  May be running a non-vanilla kernel already?
-
-	if (bytes[patchLocation + 0]    == 0x90
-		&& bytes[patchLocation + 1] == 0x90
-		&& bytes[patchLocation + 2] == 0x90
-		&& bytes[patchLocation + 3] == 0x90
-		&& bytes[patchLocation + 4] == 0x90)
-	{
-		verbose("\tLapic Version panic already patched, kernel file manually patched?\n");
-		return false;
-	}
-	else
-	{
-		bytes[patchLocation + 0] = 0x90;
-		bytes[patchLocation + 1] = 0x90;
-		bytes[patchLocation + 2] = 0x90;
-		bytes[patchLocation + 3] = 0x90;
-		bytes[patchLocation + 4] = 0x90;
-	}
-	return true;
-}
-
-// ===================================
 // Lapic Error Panic 64
 bool patch_lapic_init_64(void *kernelData)  // KernelLapicPatch_64
 {
@@ -816,7 +661,9 @@ bool patch_lapic_init_64(void *kernelData)  // KernelLapicPatch_64
 
 	UInt8       *bytes = (UInt8 *)kernelData;
 	UInt32      patchLocation = 0;
+	UInt32      patchLocation2 = 0;
 	UInt32      i;
+	UInt32      y;
 
 	verbose("\t- Looking for Lapic panic call Start\n");
 
@@ -841,7 +688,7 @@ bool patch_lapic_init_64(void *kernelData)  // KernelLapicPatch_64
 			&& bytes[i + 52] == 0x00))
 		{
 			patchLocation = i + 40;
-			verbose("\tFound Snow Leopard Lapic panic at 0x%08X\n", (unsigned int)patchLocation);
+			verbose("\tFound Lapic panic (10.6) at 0x%08X\n", (unsigned int)patchLocation);
 			break;
 		}
 		else if (KernelLapicError
@@ -863,7 +710,7 @@ bool patch_lapic_init_64(void *kernelData)  // KernelLapicPatch_64
 			&& bytes[i + 42] == 0x00))
 		{
 			patchLocation = i + 30;
-			verbose("\tFound %sLion Lapic panic at 0x%08X\n", checkOSVersion("10.7") ? "" : "Mountain ", (unsigned int)patchLocation);
+			verbose("\tFound Lapic panic (10.7 - 10.8) at 0x%08X\n", (unsigned int)patchLocation);
 			break;
 		}
 		else if (KernelLapicError
@@ -885,124 +732,44 @@ bool patch_lapic_init_64(void *kernelData)  // KernelLapicPatch_64
 			&& bytes[i + 43] == 0x00))
 		{
 			patchLocation = i + 31;
-			verbose("\tFound Mavericks Lapic panic at 0x%08X\n", (unsigned int)patchLocation);
+			verbose("\tFound Lapic panic (10.9) at 0x%08X\n", (unsigned int)patchLocation);
 			break;
 		}
-                // RehabMan: 10.10.DP1 lapic
-		else if (KernelLapicError
-			&& (bytes[i + 0] == 0x65
-			&& bytes[i + 1]  == 0x8B
-			&& bytes[i + 2]  == 0x04
-			&& bytes[i + 3]  == 0x25
-			&& bytes[i + 4]  == 0x1C
-			&& bytes[i + 5]  == 0x00
-			&& bytes[i + 6]  == 0x00
-			&& bytes[i + 7]  == 0x00
-			&& bytes[i + 33] == 0x65
-			&& bytes[i + 34] == 0x8B
-			&& bytes[i + 35] == 0x04
-			&& bytes[i + 36] == 0x25
-			&& bytes[i + 37] == 0x1C
-			&& bytes[i + 38] == 0x00
-			&& bytes[i + 39] == 0x00
-			&& bytes[i + 40] == 0x00))
-		{
-			patchLocation = i + 28;
-			verbose("\tFound Yosemite Lapic panic at 0x%08X\n", (unsigned int)patchLocation);
-			break;
-		}
-		// Sherlocks: 10.11.DP1
-		else if (KernelLapicError
-			&& (bytes[i + 0]   == 0x65
-			&& bytes[i + 1]    == 0x8B
-			&& bytes[i + 2]    == 0x0C
-			&& bytes[i + 3]    == 0x25
-			&& bytes[i + 4]    == 0x1C
-			&& bytes[i + 5]    == 0x00
-			&& bytes[i + 6]    == 0x00
-			&& bytes[i + 7]    == 0x00
-			&& bytes[i + 1411] == 0x65
-			&& bytes[i + 1412] == 0x8B
-			&& bytes[i + 1413] == 0x0C
-			&& bytes[i + 1414] == 0x25
-			&& bytes[i + 1415] == 0x1C
-			&& bytes[i + 1416] == 0x00
-			&& bytes[i + 1417] == 0x00
-			&& bytes[i + 1418] == 0x00))
-		{
-			patchLocation = i + 1400;
-			verbose("\tFound El Capitan Lapic panic at 0x%08X\n", (unsigned int)patchLocation);
-			break;
-		}
-		// Sherlocks: 10.12.DP1
-		else if (KernelLapicError
-			&& (bytes[i+0]   == 0x65
-			&& bytes[i+1]    == 0x8B
-			&& bytes[i+2]    == 0x0C
-			&& bytes[i+3]    == 0x25
-			&& bytes[i+4]    == 0x1C
-			&& bytes[i+5]    == 0x00
-			&& bytes[i+6]    == 0x00
-			&& bytes[i+7]    == 0x00
-			&& bytes[i+1409] == 0x65
-			&& bytes[i+1410] == 0x8B
-			&& bytes[i+1411] == 0x0C
-			&& bytes[i+1412] == 0x25
-			&& bytes[i+1413] == 0x1C
-			&& bytes[i+1414] == 0x00
-			&& bytes[i+1415] == 0x00
-			&& bytes[i+1416] == 0x00))
-		{
-			patchLocation = i+1398;
-			verbose("\tFound Sierra Lapic panic at 0x%08X\n", (unsigned int)patchLocation);
-			break;
-		}
-		// PMheart: 10.13.DP1
-		else if (KernelLapicError
-			&& (bytes[i+0]   == 0x65
-			&& bytes[i+1]    == 0x8B
-			&& bytes[i+2]    == 0x0C
-			&& bytes[i+3]    == 0x25
-			&& bytes[i+4]    == 0x1C
-			&& bytes[i+5]    == 0x00
-			&& bytes[i+6]    == 0x00
-			&& bytes[i+7]    == 0x00
-			&& bytes[i+1407] == 0x65
-			&& bytes[i+1408] == 0x8B
-			&& bytes[i+1409] == 0x0C
-			&& bytes[i+1410] == 0x25
-			&& bytes[i+1411] == 0x1C
-			&& bytes[i+1412] == 0x00
-			&& bytes[i+1413] == 0x00
-			&& bytes[i+1414] == 0x00))
-		{
-			patchLocation = i+1396;
-			verbose("\tFound High Sierra Lapic panic at 0x%08X\n", (unsigned int)patchLocation);
-			break;
-		}
-		// PMheart: 10.14.DP1
-		else if (KernelLapicError
-			&& (bytes[i+0] == 0x65 
-				&& bytes[i+1] == 0x8B 
-				&& bytes[i+2] == 0x0C 
-				&& bytes[i+3] == 0x25 
-				&& bytes[i+4] == 0x1C 
-				&& bytes[i+5] == 0x00 
-				&& bytes[i+6] == 0x00 
-				&& bytes[i+7] == 0x00 
-				&& bytes[i+1396] == 0x65 
-				&& bytes[i+1397] == 0x8B 
-				&& bytes[i+1398] == 0x0C 
-				&& bytes[i+1399] == 0x25 
-				&& bytes[i+1400] == 0x1C 
-				&& bytes[i+1401] == 0x00 
-				&& bytes[i+1402] == 0x00 
-				&& bytes[i+1403] == 0x00))
-		{
-			patchLocation = i+1385;
-			verbose("\tFound Mojave Lapic panic at 0x%08X\n", (unsigned int)patchLocation);
-			break;
-		}
+	    // 00 29 C7 78 XX 31 DB 8D 47 FA 83
+		else if (bytes[i+0] == 0x00 
+			&& bytes[i+1] == 0x29 
+			&& bytes[i+2] == 0xC7 
+			&& bytes[i+3] == 0x78 
+	             //(bytes[i+4] == 0x3F || bytes[i+4] == 0x4F) && // 3F:10.10-10.12/4F:10.13+
+			&& bytes[i+5] == 0x31
+			&& bytes[i+6] == 0xDB 
+			&& bytes[i+7] == 0x8D 
+			&& bytes[i+8] == 0x47 
+			&& bytes[i+9] == 0xFA
+			&& bytes[i+10] == 0x83) {
+	      for (y = i; y < 0x1000000; y++) {
+	        // Lapic panic patch, by vit9696
+	        // mov eax, gs:1Ch
+	        // cmp eax, cs:_master_cpu
+	        // 65 8B 04 25 1C 00 00 00 3B 05 XX XX XX 00
+	        if (bytes[y+0] == 0x65 
+	        	&& bytes[y+1] == 0x8B 
+	        	&& bytes[y+2] == 0x04 
+	        	&& bytes[y+3] == 0x25 
+	        	&& bytes[y+4] == 0x1C 
+	        	&& bytes[y+5] == 0x00 
+	        	&& bytes[y+6] == 0x00 
+	        	&& bytes[y+7] == 0x00 
+	        	&& bytes[y+8] == 0x3B 
+	        	&& bytes[y+9] == 0x05 
+	        	&& bytes[y+13] == 0x00) {
+	        	patchLocation = y;
+		        verbose("\tFound Lapic panic (10.10 - recent macOS) at 0x%08X\n", (unsigned int)patchLocation);
+		        break;
+		    }
+	      }
+	      break;
+	    }
 	}
 
 	if (!patchLocation)
@@ -1019,88 +786,87 @@ bool patch_lapic_init_64(void *kernelData)  // KernelLapicPatch_64
 		&& bytes[patchLocation + 3] == 0x90
 		&& bytes[patchLocation + 4] == 0x90)
 	{
-		verbose("\tLapic panic already patched, kernel file manually patched?\n");
+		verbose("\tLapic panic already patched, kernel file (10.6 - 10.9) manually patched?\n");
 		return false;
-	}
-	else
+	} else if (bytes[patchLocation + 0] == 0x31 
+		      && bytes[patchLocation + 1] == 0xC0 
+		      && bytes[patchLocation + 2] == 0x90 
+              && bytes[patchLocation + 3] == 0x90) 
 	{
-		bytes[patchLocation + 0] = 0x90;
-		bytes[patchLocation + 1] = 0x90;
-		bytes[patchLocation + 2] = 0x90;
-		bytes[patchLocation + 3] = 0x90;
-		bytes[patchLocation + 4] = 0x90;
-	}
-	return true;
-}
-
-// ===================================
-// Bronya: Lapic Panic Version 32 bit
-bool patch_lapic_version_init_32(void *kernelData)
-{
-	UInt8       *bytes = (UInt8 *)kernelData;
-	UInt32      patchLocation = 0;
-	UInt32      i;
-
-	verbose("\t- Looking for Lapic Version panic call Start\n");
-
-	for (i = 0; i < 0x1000000; i++)
-	{
-		// Bronya: Snow Leopard 10.6 Lapic Version
-		if (bytes[i + 0]     == 0x0f
-			&& bytes[i + 1]  == 0x44
-			&& bytes[i + 2]  == 0xc2
-			&& bytes[i + 49] == 0x89
-			&& bytes[i + 50] == 0x44
-			&& bytes[i + 51] == 0x24
-			&& bytes[i + 52] == 0x04)
-		{
-			patchLocation = i+60;
-			verbose("\tFound Snow Leopard Lapic Version panic at 0x%08X\n", (unsigned int)patchLocation);
-			break;
-		}
-		else
-		{
-			// Bronya: Lion 10.7 Lapic Version
-			if (bytes[i + 0]     == 0x0f
-				&& bytes[i + 1]  == 0x44
-				&& bytes[i + 2]  == 0xc8
-				&& bytes[i + 52] == 0x89
-				&& bytes[i + 53] == 0x44
-				&& bytes[i + 54] == 0x24
-				&& bytes[i + 55] == 0x04)
-			{
-				patchLocation = i+63;
-				verbose("\tFound Lion, Lion Lapic Version panic at 0x%08X\n", (unsigned int)patchLocation);
-				break;
-			}
-		}
-	}
-
-	if (!patchLocation)
-	{
-		verbose("\tCan't find Lapic Version panic, kernel patch aborted.\n");
+		verbose("\tLapic panic already patched, kernel file (10.10 - recent macOS) manually patched?\n");
 		return false;
-	}
+	} else {
+    if (bytes[patchLocation + 8] == 0x3B 
+    	&& bytes[patchLocation + 9] == 0x05 
+    	&& bytes[patchLocation + 13] == 0x00) {
+      // 65 8B 04 25 1C 00 00 00 3B XX XX XX XX 00
+      // 31 C0 90 90 90 90 90 90 90 90 90 90 90 90
+      verbose("\tPatched Lapic panic (10.10 - recent macOS)\n");
+      bytes[patchLocation + 0] = 0x31;
+      bytes[patchLocation + 1] = 0xC0;
+      for (i = 2; i < 14; i++) {
+        bytes[patchLocation + i] = 0x90;
+      }
 
-	// Already patched?  May be running a non-vanilla kernel already?
-
-	if (bytes[patchLocation + 0]    == 0x90
-		&& bytes[patchLocation + 1] == 0x90
-		&& bytes[patchLocation + 2] == 0x90
-		&& bytes[patchLocation + 3] == 0x90
-		&& bytes[patchLocation + 4] == 0x90)
-	{
-		verbose("\tLapic Version panic already patched, kernel file manually patched?\n");
-		return false;
-	}
-	else
-	{
-		bytes[patchLocation + 0] = 0x90;
-		bytes[patchLocation + 1] = 0x90;
-		bytes[patchLocation + 2] = 0x90;
-		bytes[patchLocation + 3] = 0x90;
-		bytes[patchLocation + 4] = 0x90;
-	}
+      for (i = 0; i < 0x1000000; i++) {
+        // 00 29 C7 78 XX 31 DB 8D 47 FA 83
+        if (bytes[i+0] == 0x00 
+        	&& bytes[i+1] == 0x29 
+        	&& bytes[i+2] == 0xC7 
+        	&& bytes[i+3] == 0x78 
+            //(bytes[i+4] == 0x3F || bytes[i+4] == 0x4F) && // 3F:10.10-10.12/4F:10.13+
+            && bytes[i+5] == 0x31 
+            && bytes[i+6] == 0xDB 
+            && bytes[i+7] == 0x8D 
+            && bytes[i+8] == 0x47 
+            && bytes[i+9] == 0xFA 
+            && bytes[i+10] == 0x83) {
+          for (y = i; y < 0x1000000; y++) {
+            // Lapic panic master patch, by vit9696
+            // cmp cs:_debug_boot_arg, 0
+            // E8 XX XX FF FF 83 XX XX XX XX 00 00
+            if (bytes[y+0] == 0xE8 
+            	&& bytes[y+3] == 0xFF 
+            	&& bytes[y+4] == 0xFF 
+            	&& bytes[y+5] == 0x83 
+            	&& bytes[y+10] == 0x00 
+            	&& bytes[y+11] == 0x00) {
+              patchLocation2 = y;
+		      verbose("\tFound Lapic panic master (10.10 - recent macOS) at 0x%08X\n", (unsigned int)patchLocation2);
+              break;
+            }
+          }
+          break;
+        }
+      }
+        
+      if (!patchLocation2) {
+        verbose("\tCan't find Lapic panic master (10.10 - recent macOS), kernel patch aborted.\n");
+        return false;
+      }
+        
+      // Already patched? May be running a non-vanilla kernel already?
+      if (bytes[patchLocation2 + 5] == 0x31 
+      	  && bytes[patchLocation2 + 6] == 0xC0) {
+        verbose("\tLapic panic master already patched, kernel file (10.6 - 10.9) manually patched?\n");
+        return false;
+      } else {
+        verbose("\tPatched Lapic panic master (10.10 - recent macOS)\n");
+        // E8 XX XX FF FF 83 XX XX XX XX 00 00
+        // E8 XX XX FF FF 31 C0 90 90 90 90 90
+        bytes[patchLocation2 + 5] = 0x31;
+        bytes[patchLocation2 + 6] = 0xC0;
+        for (i = 7; i < 12; i++) {
+          bytes[patchLocation2 + i] = 0x90;
+        }
+      }
+    } else {
+      verbose("\tPatched Lapic panic (10.6 - 10.9)\n");
+      for (i = 0; i < 5; i++) {
+        bytes[patchLocation + i] = 0x90;
+      }
+    }
+  }
 	return true;
 }
 
@@ -1378,6 +1144,13 @@ void patch_BooterExtensions_32(void *kernelData)
 
 void patch_BooterExtensions_64(void *kernelData)
 {
+	// Port from Clover 4979
+	UInt32  i;
+	UInt32  y;
+	UInt32  patchLocation = 0;
+	UInt32  patchLocation2 = 0;
+	// Port from Clover 4979
+
 	// KernelBooterExtensionsPatch to load extra kexts besides kernelcache
 	UInt8   *Bytes;
 	UInt32  Index;
@@ -1389,244 +1162,94 @@ void patch_BooterExtensions_64(void *kernelData)
 	Bytes = (UInt8 *)kernelData;
 	PatchApplied = false;
 
-	// High Sierra, Mojave onward, need to use 10.12 instead of 10.13. kernel bug?
-	// if (kernelOSVer >= MacOSVer2Int("10.13") && kernelOSVer < MacOSVer2Int("10.14"))
-	if (kernelOSVer >= MacOSVer2Int("10.12"))
+	// Port from Clover 4979 start.
+	// EXT - 10.8 - recent macOS
+	if (kernelOSVer >= MacOSVer2Int("10.8"))
 	{
-		for (Index = 0; Index < 0x1000000; ++Index)
-		{
-			// High Sierra
-			if (Bytes[Index]         == 0xC3
-				&& Bytes[Index + 1]  == 0x48
-				&& Bytes[Index + 2]  == 0x85
-				&& Bytes[Index + 3]  == 0xDB
-				&& Bytes[Index + 4]  == 0x74
-				&& Bytes[Index + 5]  == 0x69
-				&& Bytes[Index + 6]  == 0x48
-				&& Bytes[Index + 7]  == 0x8B
-				&& Bytes[Index + 8]  == 0x03
-				&& Bytes[Index + 9]  == 0x48
-				&& Bytes[Index + 10] == 0x89
-				&& Bytes[Index + 11] == 0xDF
-				&& Bytes[Index + 12] == 0xFF
-				&& Bytes[Index + 13] == 0x50
-				&& Bytes[Index + 14] == 0x28
-				&& Bytes[Index + 15] == 0x48)
-			{
-				Bytes[Index + 4] = 0xEB;
-				Bytes[Index + 5] = 0x12;
-				count++;
-
-				verbose("\tFound High Sierra, Mojave SIP pattern: patched!\n");
-
-				if (PatchApplied)
-				{
-					break;
-				}
-
-				PatchApplied = true;
-			}
-		}
+      // EXT - load extra kexts besides kernelcache.
+      for (i = 0; i < 0x1000000; i++) {
+        // 01 00 31 FF BE 14 00 05
+        if (Bytes[i+0] == 0x01 && Bytes[i+1] == 0x00 && Bytes[i+2] == 0x31 &&
+            Bytes[i+3] == 0xFF && Bytes[i+4] == 0xBE && Bytes[i+5] == 0x14 &&
+            Bytes[i+6] == 0x00 && Bytes[i+7] == 0x05) {
+          for (y = i; y < 0x1000000; y++) {
+            // E8 XX 00 00 00 EB XX XX
+            if (Bytes[y+0] == 0xE8 && Bytes[y+2] == 0x00 && Bytes[y+3] == 0x00 &&
+                Bytes[y+4] == 0x00 && Bytes[y+5] == 0xEB) {
+                //(Bytes[y+7] == 0x48 || Bytes[y+7] == 0xE8)) { // 48:10.8-10.9/E8:10.10+
+              patchLocation = y;
+              break;
+            }
+          }
+          break;
+        }
+      } 
+      if (patchLocation) {
+        verbose("\tFound EXT pattern (10.8 - recent macOS): patched!\n");
+        for (i = 5; i < 7; i++) {
+          // E8 XX 00 00 00 EB XX
+          // E8 XX 00 00 00 90 90
+          Bytes[patchLocation + i] = 0x90;
+        }
+        count++;
+        PatchApplied = true;
+      }
 	}
 
-	// Sierra
-	if (kernelOSVer >= MacOSVer2Int("10.12") && kernelOSVer < MacOSVer2Int("10.13"))
+	// SIP - 10.11 - recent macOS
+	if (kernelOSVer >= MacOSVer2Int("10.11"))
 	{
-		for (Index = 0; Index < 0x1000000; ++Index)
-		{
-			// Sierra
-			if (Bytes[Index]         == 0xC3
-				&& Bytes[Index + 1]  == 0x48
-				&& Bytes[Index + 2]  == 0x85
-				&& Bytes[Index + 3]  == 0xDB
-				&& Bytes[Index + 4]  == 0x74
-				&& Bytes[Index + 5]  == 0x71
-				&& Bytes[Index + 6]  == 0x48
-				&& Bytes[Index + 7]  == 0x8B
-				&& Bytes[Index + 8]  == 0x03
-				&& Bytes[Index + 9]  == 0x48
-				&& Bytes[Index + 10] == 0x89
-				&& Bytes[Index + 11] == 0xDF
-				&& Bytes[Index + 12] == 0xFF
-				&& Bytes[Index + 13] == 0x50
-				&& Bytes[Index + 14] == 0x28
-				&& Bytes[Index + 15] == 0x48)
-			{
-				Bytes[Index + 4] = 0xEB;
-				Bytes[Index + 5] = 0x12;
-				count++;
-
-				verbose("\tFound Sierra SIP pattern: patched!\n");
-
-				if (PatchApplied)
-				{
-					break;
-				}
-
-				PatchApplied = true;
-			}
-		}
-	}
-
-	// Yosemite/El Capitan
-	if (kernelOSVer >= MacOSVer2Int("10.10") && kernelOSVer < MacOSVer2Int("10.12"))
-	{
-		for (Index = 0; Index < 0x1000000; ++Index)
-		{
-			// El Capitan
-			if (Bytes[Index]         == 0xC3
-				&& Bytes[Index + 1]  == 0x48
-				&& Bytes[Index + 2]  == 0x85
-				&& Bytes[Index + 3]  == 0xDB
-				&& Bytes[Index + 4]  == 0x74
-				&& Bytes[Index + 5]  == 0x70
-				&& Bytes[Index + 6]  == 0x48
-				&& Bytes[Index + 7]  == 0x8B
-				&& Bytes[Index + 8]  == 0x03
-				&& Bytes[Index + 9]  == 0x48
-				&& Bytes[Index + 10] == 0x89
-				&& Bytes[Index + 11] == 0xDF
-				&& Bytes[Index + 12] == 0xFF
-				&& Bytes[Index + 13] == 0x50
-				&& Bytes[Index + 14] == 0x28
-				&& Bytes[Index + 15] == 0x48)
-			{
-				Bytes[Index + 4] = 0xEB;
-				Bytes[Index + 5] = 0x12;
-				count++;
-
-				if (kernelOSVer >= MacOSVer2Int("10.11"))
-				{
-					verbose("\tFound El Capitan SIP pattern: patched!\n");
-				}
-				else
-				{
-					verbose("\tFound Yosemite SIP pattern: patched!\n");
-				}
-
-				if (PatchApplied)
-				{
-					break;
-				}
-
-				PatchApplied = true;
-			}
-		}
-	}
-
-	// Mojave, need to use 10.12 instead of 10.14. kernel bug?
-	// if (kernelOSVer >= MacOSVer2Int("10.10") && kernelOSVer < MacOSVer2Int("10.14"))
-	if (kernelOSVer >= MacOSVer2Int("10.12"))
-	{
-
-		for (Index = 0; Index < 0x1000000; ++Index)
-		{
-			if (Bytes[Index]         == 0xE8
-				&& Bytes[Index + 1]  == 0xAF
-				&& Bytes[Index + 2]  == 0x00
-				&& Bytes[Index + 3]  == 0x00
-				&& Bytes[Index + 4]  == 0x00
-				&& Bytes[Index + 5]  == 0xEB
-				&& Bytes[Index + 6]  == 0x05
-				&& Bytes[Index + 7]  == 0xE8)
-			{
-				Bytes[Index + 5] = 0x90;
-				Bytes[Index + 6] = 0x90;
-				count++;
-				
-				verbose("\tFound Mojave EXT pattern: patched!\n");
-
-				if (PatchApplied)
-				{
-					break;
-				}
-
-				PatchApplied = true;
-			}
-		}
-	}
-
-	// Yosemite onward.
-	// Yosemite/EL Capitan/Sierra/High Sierra
-	// if (kernelOSVer >= MacOSVer2Int("10.10") && kernelOSVer < MacOSVer2Int("10.14"))
-	if (kernelOSVer >= MacOSVer2Int("10.10"))
-	{
-
-		for (Index = 0; Index < 0x1000000; ++Index)
-		{
-			if (Bytes[Index]         == 0xE8
-				&& Bytes[Index + 1]  == 0x25
-				&& Bytes[Index + 2]  == 0x00
-				&& Bytes[Index + 3]  == 0x00
-				&& Bytes[Index + 4]  == 0x00
-				&& Bytes[Index + 5]  == 0xEB
-				&& Bytes[Index + 6]  == 0x05
-				&& Bytes[Index + 7]  == 0xE8)
-			{
-				Bytes[Index + 5] = 0x90;
-				Bytes[Index + 6] = 0x90;
-				count++;
-				
-				if (kernelOSVer >= MacOSVer2Int("10.13") && kernelOSVer < MacOSVer2Int("10.14"))
-				{
-					verbose("\tFound High Sierra EXT pattern: patched!\n");
-				}
-				else if (kernelOSVer >= MacOSVer2Int("10.12") && kernelOSVer < MacOSVer2Int("10.13"))
-				{
-					verbose("\tFound Sierra EXT pattern: patched!\n");
-				}
-				else if (kernelOSVer >= MacOSVer2Int("10.11") && kernelOSVer < MacOSVer2Int("10.12"))
-				{
-					verbose("\tFound EL Capitan EXT pattern: patched!\n");
-				}
-				else
-				{
-					verbose("\tFound Yosemite EXT pattern: patched!\n");
-				}
-
-				if (PatchApplied)
-				{
-					break;
-				}
-
-				PatchApplied = true;
-			}
-		}
-	}
-
-	// Mountain Lion/Mavericks
-	if (kernelOSVer >= MacOSVer2Int("10.8") && kernelOSVer < MacOSVer2Int("10.10"))
-	{
-
-		for (Index = 0; Index < 0x1000000; ++Index)
-		{
-			if (Bytes[Index]         == 0xC6
-				&& Bytes[Index + 1]  == 0xE8
-				&& Bytes[Index + 2]  == 0x30
-				&& Bytes[Index + 3]  == 0x00
-				&& Bytes[Index + 4]  == 0x00
-				&& Bytes[Index + 5]  == 0x00
-				&& Bytes[Index + 6]  == 0xEB
-				&& Bytes[Index + 7]  == 0x08
-				&& Bytes[Index + 8]  == 0x48
-				&& Bytes[Index + 9]  == 0x89
-				&& Bytes[Index + 10] == 0xDF)
-			{
-				Bytes[Index + 6] = 0x90;
-				Bytes[Index + 7] = 0x90;
-				count++;
-
-				verbose("\tFound M%s EXT pattern: patched!\n", checkOSVersion("10.8") ? "ountain Lion" : "avericks");
-
-				if (PatchApplied)
-				{
-					break;
-				}
-
-				PatchApplied = true;
-			}
-		}
-	}
+	  // SIP - bypass kext check by System Integrity Protection.
+      for (i = 0; i < 0x1000000; ++i) {
+        // 45 31 FF 41 XX 01 00 00 DC 48
+        if (Bytes[i + 0] == 0x45 && Bytes[i + 1] == 0x31 && Bytes[i + 3] == 0x41 &&
+            //(Bytes[i + 4] == 0xBF || Bytes[i + 4] == 0xBE) && // BF:10.11/BE:10.12+
+            Bytes[i + 5] == 0x01 && Bytes[i + 6] == 0x00 && Bytes[i + 7] == 0x00 &&
+            Bytes[i + 8] == 0xDC && Bytes[i + 9] == 0x48) {
+          for (y = i; y < 0x1000000; ++y) {
+            // 48 85 XX 74 XX 48 XX XX 48
+            if (Bytes[y+0] == 0x48 && Bytes[y+1] == 0x85 && Bytes[y+3] == 0x74 &&
+                Bytes[y+5] == 0x48 && Bytes[y+8] == 0x48) {
+              patchLocation2 = y;
+              break;
+            // 00 85 C0 0F 84 XX 00 00 00 49
+            } else if (Bytes[y+0] == 0x00 && Bytes[y+1] == 0x85 && Bytes[y+2] == 0xC0 &&
+                       Bytes[y+3] == 0x0F && Bytes[y+4] == 0x84 && Bytes[y+9] == 0x49) {
+              patchLocation2 = y;
+              break;
+            }
+          }
+        }
+      }
+      if (patchLocation2) {
+        if (Bytes[patchLocation2 + 0] == 0x48 && Bytes[patchLocation2 + 1] == 0x85) {
+            Bytes[patchLocation2 + 3] = 0xEB;
+		    verbose("\tFound SIP pattern (10.11 - 10.14): patched!\n");
+          if (Bytes[patchLocation2 + 4] == 0x6C) {
+            // 48 85 XX 74 6C 48 XX XX 48
+            // 48 85 XX EB 15 48 XX XX 48
+            Bytes[patchLocation2 + 4] = 0x15; // 10.14.4-10.14.6
+          } else {
+            // 48 85 XX 74 XX 48 XX XX 48
+            // 48 85 XX EB 12 48 XX XX 48
+            Bytes[patchLocation2 + 4] = 0x12; // 10.11-10.14.3
+          }
+          count++;
+          PatchApplied = true;
+        // PMheart
+        } else if (Bytes[patchLocation2 + 0] == 0x00 && Bytes[patchLocation2 + 1] == 0x85) {
+		  verbose("\tFound SIP pattern (10.15 - recent macOS): patched!\n");
+          for (i = 3; i < 9; i++) {
+            // 00 85 C0 0F 84 XX 00 00 00 49
+            // 00 85 C0 90 90 90 90 90 90 49
+            Bytes[patchLocation2 + i] = 0x90;
+          }
+          count++;
+          PatchApplied = true;
+        }
+      }
+    }
+    // Port from Clover 4979 end.
 
 	// Lion 64
 	if (kernelOSVer >= MacOSVer2Int("10.7") && kernelOSVer < MacOSVer2Int("10.8"))
@@ -2195,7 +1818,9 @@ void patch_prelinked_kexts(void *kernelData,
     //int lessBytes = (int)((uncompressed_size/3)*2); // speedup, the _PrelinkInfoDictionary should not be 1/3 of entire cache!
     for (Index = 0/*lessBytes*/; Index < uncompressed_size; ++Index)
     {
-        //scan for _PrelinkInfoDictionary
+        // scan for _PrelinkInfoDictionary
+        // <dict><key>_PrelinkInfoDictionary</key>
+        // 3C 64 69 63 74 3E 3C 6B 65 79 3E 5F 50 72 65 6C 69 6E 6B 49 6E 66 6F 44 69 63 74 69 6F 6E 61 72 79 3C 2F 6B 65 79 3E
         if (Bytes[Index]         == 0x3C
             && Bytes[Index + 1]  == 0x64
             && Bytes[Index + 2]  == 0x69
@@ -2248,7 +1873,9 @@ void patch_prelinked_kexts(void *kernelData,
     {
         for (Index = prelinkDictStartLocation; Index < uncompressed_size; ++Index)
         {
-            // end of prelink ( <> plus some zeros)
+            // end of prelink ( <> plus some zeros) 
+            // </dict>
+            // 3C 2F 64 69 63 74 3E 00 00 00 00 00 00 00
             if (Bytes[Index]         == 0x3C
                 && Bytes[Index + 1]  == 0x2F
                 && Bytes[Index + 2]  == 0x64

@@ -51,6 +51,8 @@ enum {
 	iDeviceGeneric_o,
 	iDeviceHFS,
 	iDeviceHFS_o,
+	iDeviceHFS_cat,
+	iDeviceHFS_cat_o,
 	iDeviceHFS_moj,
 	iDeviceHFS_moj_o,
 	iDeviceHFS_hsi,
@@ -76,6 +78,8 @@ enum {
 
 	iDeviceHFSRAID,
 	iDeviceHFSRAID_o,
+	iDeviceHFSRAID_cat,
+	iDeviceHFSRAID_cat_o,
 	iDeviceHFSRAID_moj,
 	iDeviceHFSRAID_moj_o,
 	iDeviceHFSRAID_hsi,
@@ -107,6 +111,8 @@ enum {
 
 	iDeviceHFSFUSION,
 	iDeviceHFSFUSION_o,
+	iDeviceHFSFUSION_cat,
+	iDeviceHFSFUSION_cat_o,
 	iDeviceHFSFUSION_moj,
 	iDeviceHFSFUSION_moj_o,
 	iDeviceHFSFUSION_hsi,
@@ -177,6 +183,8 @@ image_t images[] = {
 	{.name = "device_generic_o",            .image = NULL},
 	{.name = "device_hfsplus",              .image = NULL},
 	{.name = "device_hfsplus_o",            .image = NULL},
+	{.name = "device_hfsplus_cat",          .image = NULL},
+	{.name = "device_hfsplus_cat_o",        .image = NULL},
 	{.name = "device_hfsplus_moj",          .image = NULL},
 	{.name = "device_hfsplus_moj_o",        .image = NULL},
 	{.name = "device_hfsplus_hsi",          .image = NULL},
@@ -202,6 +210,8 @@ image_t images[] = {
 
 	{.name = "device_hfsraid",              .image = NULL},
 	{.name = "device_hfsraid_o",            .image = NULL},
+	{.name = "device_hfsraid_cat",          .image = NULL},
+	{.name = "device_hfsraid_cat_o",        .image = NULL},
 	{.name = "device_hfsraid_moj",          .image = NULL},
 	{.name = "device_hfsraid_moj_o",        .image = NULL},
 	{.name = "device_hfsraid_hsi",          .image = NULL},
@@ -233,6 +243,8 @@ image_t images[] = {
 
 	{.name = "device_hfsfusion",            .image = NULL},
 	{.name = "device_hfsfusion_o",          .image = NULL},
+	{.name = "device_hfsfusion_cat",        .image = NULL},
+	{.name = "device_hfsfusion_cat_o",      .image = NULL},
 	{.name = "device_hfsfusion_moj",        .image = NULL},
 	{.name = "device_hfsfusion_moj_o",      .image = NULL},
 	{.name = "device_hfsfusion_hsi",        .image = NULL},
@@ -456,6 +468,8 @@ static int loadGraphics(void)
 	LOADPNG(device_hfsplus,                 iDeviceGeneric);
 	LOADPNG(device_hfsplus_o,               iDeviceHFS);
 
+	LOADPNG(device_hfsplus_cat,             iDeviceHFS);
+	LOADPNG(device_hfsplus_cat_o,           iDeviceHFS_cat);
 	LOADPNG(device_hfsplus_moj,             iDeviceHFS);
 	LOADPNG(device_hfsplus_moj_o,           iDeviceHFS_moj);
 	LOADPNG(device_hfsplus_hsi,             iDeviceHFS);
@@ -481,6 +495,8 @@ static int loadGraphics(void)
 
 	LOADPNG(device_hfsraid,                 iDeviceHFS);
 	LOADPNG(device_hfsraid_o,               iDeviceHFSRAID);
+	LOADPNG(device_hfsraid_cat,             iDeviceHFSRAID);
+	LOADPNG(device_hfsraid_cat_o,           iDeviceHFSRAID_cat);
 	LOADPNG(device_hfsraid_moj,             iDeviceHFSRAID);
 	LOADPNG(device_hfsraid_moj_o,           iDeviceHFSRAID_moj);
 	LOADPNG(device_hfsraid_hsi,             iDeviceHFSRAID);
@@ -512,6 +528,8 @@ static int loadGraphics(void)
 
 	LOADPNG(device_hfsfusion,               iDeviceHFS);
 	LOADPNG(device_hfsfusion_o,             iDeviceHFSFUSION);
+	LOADPNG(device_hfsfusion_cat,           iDeviceHFSFUSION);
+	LOADPNG(device_hfsfusion_cat_o,         iDeviceHFSFUSION_cat);
 	LOADPNG(device_hfsfusion_moj,           iDeviceHFSFUSION);
 	LOADPNG(device_hfsfusion_moj_o,         iDeviceHFSFUSION_moj);
 	LOADPNG(device_hfsfusion_hsi,           iDeviceHFSFUSION);
@@ -1189,6 +1207,10 @@ void drawDeviceIcon(BVRef device, pixmap_t *buffer, position_t p, bool isSelecte
 							}
 							if (device->OSVersion[4] == '4') { // 10.14
 								devicetype = (device->flags & kBVFlagBooter ? iDeviceHFSRAID_moj : iDeviceHFS_moj); // Mojave
+								break;
+							}
+							if (device->OSVersion[4] == '5') { // 10.15
+								devicetype = (device->flags & kBVFlagBooter ? iDeviceHFSRAID_cat : iDeviceHFS_cat); // Catalina
 								break;
 							}
 						default:

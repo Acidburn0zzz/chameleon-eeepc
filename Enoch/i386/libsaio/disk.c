@@ -1709,11 +1709,17 @@ static bool getOSVersion(BVRef bvr, char *str)
 	char *MLPattern		= "Install%20OS%20X%20Mountain%20Lion";	// Install OS X Mountain Lion
 	char *MavPattern	= "Install%20OS%20X%20Mavericks";	// Install OS X Mavericks
 	char *YosPattern	= "Install%20OS%20X%20Yosemite";	// Install OS X Yosemite
+	char *YosPatternB	= "Install%20OS%20X%2010.10";		// Install OS X 10.10
 	char *ECPattern		= "Install%20OS%20X%20El%20Capitan";	// Install OS X El Capitan
+	char *ECPatternB	= "Install%20OS%20X%2010.11";		// Install OS X 10.11
 	char *SierraPattern	= "Install%20macOS%20Sierra";		// Install macOS Sierra
+	char *SierraPatternB	= "Install%20macOS%20X%2010.12";	// Install macOS 10.12
 	char *HSierraPattern	= "Install%20macOS%20High%20Sierra";	// Install macOS High Sierra
 	char *HSierraPatternB	= "Install%20macOS%2010.13";		// Install macOS 10.13
 	char *MojavePattern	= "Install%20macOS%20Mojave";		// Install macOS Mojave
+	char *MojavePatternB	= "Install%20macOS%2010.14";		// Install macOS 10.14
+	char *CatalinaPattern	= "Install%20macOS%20Catalina";		// Install macOS Catalina
+	char *CatalinaPatternB	= "Install%20macOS%2010.15";		// Install macOS 10.15
 
 	/*
 	 * Only look for OS Version on HFS+
@@ -1796,40 +1802,40 @@ static bool getOSVersion(BVRef bvr, char *str)
 				fakeOSVersionInt = 9;
 				valid = true;
 			}
-			else if(strstr(val, YosPattern))
+			else if( strstr(val, YosPattern) || strstr(val, YosPatternB) )
 			{
 				fakeOSVersion = "10.10";
 				fakeOSVersionInt = 10;
 				valid = true;
 			}
-			else if(strstr(val, ECPattern))
+			else if( strstr(val, ECPattern) || strstr(val, ECPatternB) )
 			{
 				fakeOSVersion = "10.11";
 				fakeOSVersionInt = 11;
 				valid = true;
 			}
-			else if(strstr(val, SierraPattern))
+			else if( strstr(val, SierraPattern) || strstr(val, SierraPatternB) )
 			{
 				fakeOSVersion = "10.12";
 				fakeOSVersionInt = 12;
 				valid = true;
 			}
-			else if(strstr(val, HSierraPattern))
+			else if( strstr(val, HSierraPattern) || strstr(val, HSierraPatternB) )
 			{
 				fakeOSVersion = "10.13";
 				fakeOSVersionInt = 13;
 				valid = true;
 			}
-			else if(strstr(val, HSierraPatternB))
-			{
-				fakeOSVersion = "10.13";
-				fakeOSVersionInt = 13;
-				valid = true;
-			}
-			else if(strstr(val, MojavePattern))
+			else if( strstr(val, MojavePattern) || strstr(val, MojavePatternB) )
 			{
 				fakeOSVersion = "10.14";
 				fakeOSVersionInt = 14;
+				valid = true;
+			}
+			else if( strstr(val, CatalinaPattern) || strstr(val, CatalinaPatternB) )
+			{
+				fakeOSVersion = "10.15";
+				fakeOSVersionInt = 15;
 				valid = true;
 			}
 			else

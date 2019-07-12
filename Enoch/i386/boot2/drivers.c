@@ -1551,7 +1551,6 @@ long DecodeKernel(void *binary, entry_t *rentry, char **raddr, int *rsize)
 					case 5: kernelOSVer = 0xA0C0400; break;
 					case 6: kernelOSVer = 0xA0C0500; break;
 					case 7: kernelOSVer = 0xA0C0600; break;
-//					case 8: kernelOSVer = 0xA0C0700; break;
 					default:kernelOSVer = 0xA0C0600; break; //Last known kernel (add here updates)
 				}
 				break;
@@ -1559,20 +1558,47 @@ long DecodeKernel(void *binary, entry_t *rentry, char **raddr, int *rsize)
 				switch (gDarwinMinor)
 				{
 					case 0: kernelOSVer = 0xA0D0000; break;
-					case 1: kernelOSVer = 0xA0D0100; break;
-//					case 2: kernelOSVer = 0xA0D0200; break; // 17.2.0
-//					case 3: kernelOSVer = 0xA0C0200; break;
-//					case 4: kernelOSVer = 0xA0C0300; break;
-//					case 5: kernelOSVer = 0xA0C0400; break;
-//					case 6: kernelOSVer = 0xA0C0500; break;
-//					case 7: kernelOSVer = 0xA0C0600; break;
-//					case 8: kernelOSVer = 0xA0C0700; break;
-					default:kernelOSVer = 0xA0D0100; break; //Last known kernel (add here updates)
+					case 1: kernelOSVer = 0xA0D0100; break; // 17.2.0
+					case 2: kernelOSVer = 0xA0D0200; break;
+					case 3: kernelOSVer = 0xA0D0300; break;
+					case 4: kernelOSVer = 0xA0D0400; break;
+					case 5: kernelOSVer = 0xA0D0500; break;
+					case 6: kernelOSVer = 0xA0D0600; break;
+					case 7: kernelOSVer = 0xA0D0700; break;
+					default:kernelOSVer = 0xA0D0700; break; //Last known kernel (add here updates)
+				}
+				break;
+			case 18:  /* Mojave */
+				switch (gDarwinMinor)
+				{
+					case 0: kernelOSVer = 0xA0E0000; break;
+					case 1: kernelOSVer = 0xA0E0100; break;
+					case 2: kernelOSVer = 0xA0E0200; break;
+					case 3: kernelOSVer = 0xA0E0300; break;
+					case 4: kernelOSVer = 0xA0E0400; break;
+					case 5: kernelOSVer = 0xA0E0500; break;
+					case 6: kernelOSVer = 0xA0E0600; break;
+					case 7: kernelOSVer = 0xA0E0700; break;
+					default:kernelOSVer = 0xA0E0700; break; //Last known kernel (add here updates)
+				}
+				break;
+			case 19:  /* Catalina */
+				switch (gDarwinMinor)
+				{
+					case 0: kernelOSVer = 0xA0F0000; break;
+//					case 1: kernelOSVer = 0xA0F0100; break;
+//					case 2: kernelOSVer = 0xA0F0200; break;
+//					case 3: kernelOSVer = 0xA0F0300; break;
+//					case 4: kernelOSVer = 0xA0F0400; break;
+//					case 5: kernelOSVer = 0xA0F0500; break;
+//					case 6: kernelOSVer = 0xA0F0600; break;
+//					case 7: kernelOSVer = 0xA0F0700; break;
+					default:kernelOSVer = 0xA0F0000; break; //Last known kernel (add here updates)
 				}
 				break;
 			default:
-				kernelOSVer = 0xA0D0100;
-				break; //Last known kernel is Sierra 10.13.1
+				kernelOSVer = 0xA0F0000;
+				break; //Last known kernel is Sierra 10.15
 			}
 		}
 		else
@@ -1633,14 +1659,28 @@ long DecodeKernel(void *binary, entry_t *rentry, char **raddr, int *rsize)
 			case 0xA0C0400: gDarwinMajor = 16; gDarwinMinor =  5; gDarwinRev = 0; break; // 10.12.4
 			case 0xA0C0500: gDarwinMajor = 16; gDarwinMinor =  6; gDarwinRev = 0; break; // 10.12.5
 			case 0xA0C0600: gDarwinMajor = 16; gDarwinMinor =  7; gDarwinRev = 0; break; // 10.12.6
-//			case 0xA0C0700: gDarwinMajor = 16; gDarwinMinor =  x; gDarwinRev = x; break; // 10.12.7
 			// High Sierra
 			case 0xA0D0000: gDarwinMajor = 17; gDarwinMinor =  0; gDarwinRev = 0; break; // 10.13
-			case 0xA0D0100: gDarwinMajor = 17; gDarwinMinor =  1; gDarwinRev = 0; break; // 10.13.1
+			case 0xA0D0100: gDarwinMajor = 17; gDarwinMinor =  2; gDarwinRev = 0; break; // 10.13.1
+			case 0xA0D0200: gDarwinMajor = 17; gDarwinMinor =  3; gDarwinRev = 0; break; // 10.13.2
+			case 0xA0D0300: gDarwinMajor = 17; gDarwinMinor =  4; gDarwinRev = 0; break; // 10.13.3
+			case 0xA0D0400: gDarwinMajor = 17; gDarwinMinor =  5; gDarwinRev = 0; break; // 10.13.4
+			case 0xA0D0500: gDarwinMajor = 17; gDarwinMinor =  6; gDarwinRev = 0; break; // 10.13.5
+			case 0xA0D0600: gDarwinMajor = 17; gDarwinMinor =  7; gDarwinRev = 0; break; // 10.13.6
 			// Mojave
+			case 0xA0E0000: gDarwinMajor = 18; gDarwinMinor =  0; gDarwinRev = 0; break; // 10.14
+			case 0xA0E0100: gDarwinMajor = 18; gDarwinMinor =  2; gDarwinRev = 0; break; // 10.14.1
+			case 0xA0E0200: gDarwinMajor = 18; gDarwinMinor =  2; gDarwinRev = 0; break; // 10.14.2
+			case 0xA0E0300: gDarwinMajor = 18; gDarwinMinor =  2; gDarwinRev = 0; break; // 10.14.3
+			case 0xA0E0400: gDarwinMajor = 18; gDarwinMinor =  5; gDarwinRev = 0; break; // 10.14.4
+			case 0xA0E0500: gDarwinMajor = 18; gDarwinMinor =  6; gDarwinRev = 0; break; // 10.14.5
+			case 0xA0E0600: gDarwinMajor = 18; gDarwinMinor =  7; gDarwinRev = 0; break; // 10.14.6
+			// Catalina
+			case 0xA0F0000: gDarwinMajor = 19; gDarwinMinor =  0; gDarwinRev = 0; break; // 10.15
+//			case 0xA0F0100: gDarwinMajor = 19; gDarwinMinor =  1; gDarwinRev = 0; break; // 10.15.1
 
 			// default = last known kernel
-			default:        gDarwinMajor = 17; gDarwinMinor =  1; gDarwinRev = 0; break; // 10.13.1;
+			default:        gDarwinMajor = 19; gDarwinMinor =  0; gDarwinRev = 0; break; // 10.15
 		}
 	}
 
