@@ -30,6 +30,7 @@
 #include "libsaio.h"
 
 // OS X Versions
+#define CATALINA        checkOSVersion("10.15") // Catalina
 #define MOJAVE          checkOSVersion("10.14") // Mojave
 #define HSIERRA         checkOSVersion("10.13") // High Sierra
 #define SIERRA          checkOSVersion("10.12") // Sierra
